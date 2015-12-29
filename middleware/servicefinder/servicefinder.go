@@ -17,6 +17,7 @@ type ServiceFinder struct {
 func (finder *ServiceFinder) Handle(req *request.Request, res *response.Response, next func()) {
 	for _, service := range finder.knownServices {
 		log.Printf("Original request: %s", req.GetPath())
+		log.Printf("Check service id: %s", service.ID)
 		log.Printf("Compare to service name: %s", service.Service)
 		if strings.HasPrefix(req.GetPath(), service.Service) {
 			req.AddMatchedService(service)
@@ -29,12 +30,15 @@ func (finder *ServiceFinder) fetchServices() {
 	services, err := finder.serviceDiscoveryClient.Agent().Services()
 	if err != nil {
 		log.Printf("error fetching services: %v", err)
+		return
 	}
+
+	log.Printf("Fetched services: %d", len(services))
 
 	finder.knownServices = services
 }
 
-func initTimer(r ServiceFinder) {
+func initTimer(r *ServiceFinder) {
 	ticker := time.NewTicker(3 * time.Second)
 
 	for {
@@ -55,7 +59,7 @@ func NewServiceFinder() *ServiceFinder {
 		serviceDiscoveryClient: client,
 	}
 
-	go initTimer(r)
+	go initTimer(&r)
 	go r.fetchServices()
 
 	return &r

@@ -7,7 +7,8 @@ import (
 
 type Request struct {
 	HTTP            *http.Request
-	MatchedServices []*api.AgentService
+	MatchedServices []*api.AgentService // list of service:
+	UpstreamService *api.AgentService   //
 }
 
 func (req *Request) AddHeader(name string, value string) {
